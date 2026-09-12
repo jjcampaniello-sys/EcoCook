@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PastaWatts - L'Assistant de Cuisson Passive</title>
+    <link rel="stylesheet" href="style.css">
+        <!-- Liaison avec le manifest pour Android -->
+    <link rel="manifest" href="manifest.json">
+    <!-- Métadonnées pour l'installation iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="PastaWatts">
+    <link rel="apple-touch-icon" href="icon.svg">
+
+</head>
+<body>
+
+<div class="container">
+    <h1>🌱 PastaWatts</h1>
+    <a href="readme.html" class="about-link">
+    📖 À propos de PastaWatts
+</a>
+    <div class="group">
+        <label for="pw-category">Catégorie d'aliment :</label>
+        <select id="pw-category" onchange="Pasta.toggleInputs()">
+            <option value="pates">🍝 Pâtes (Blé Dur / Complètes)</option>
+            <option value="riz">🌾 Riz (Blanc, Complet, Basmati)</option>
+            <option value="cereales">🥣 Autres Céréales (Quinoa, Boulgour...)</option>
+        </select>
+    </div>
+
+    <!-- Options dynamiques pour les Pâtes -->
+    <div id="pw-pates-options" class="group">
+        <label for="pw-formePates">Forme & Type de pâtes :</label>
+        <select id="pw-formePates" onchange="Pasta.calculer()">
+            <option value="fines">Fines / Longues (Spaghetti, Coquillettes) [-1 min de repos]</option>
+            <option value="epaisses" selected>Épaisses / Creuses (Penne, Rigatoni) [Inertie idéale]</option>
+            <option value="completes">Pâtes Complètes (Intégrales) [+2 min de repos]</option>
+        </select>
+        <label for="pw-tempsPaquet" style="margin-top: 8px;">Temps indiqué sur le paquet (minutes) :</label>
+        <input type="number" id="pw-tempsPaquet" value="9" min="1" oninput="Pasta.calculer()">
+    </div>
+
+    <!-- Options dynamiques pour le Riz et Céréales -->
+   <div id="pw-riz-options" class="group" style="display:none;">
+    <label for="pw-typeRiz">Type de riz :</label>
+    <select id="pw-typeRiz" onchange="Pasta.calculer()">
+        <option value="riz_blanc">Riz Blanc / Basmati / Thaï</option>
+        <option value="riz_complet">Riz Complet (Grain entier)</option>
+    </select>
+</div>
+
+<div id="pw-cereales-options" class="group" style="display:none;">
+    <label for="pw-typeCereale">Type de céréale :</label>
+    <select id="pw-typeCereale" onchange="Pasta.calculer()">
+        <option value="quinoa">Quinoa</option>
+        <option value="boulgour">Boulgour / Épeautre concassé</option>
+        <option value="ble_grain">Grains de Blé Entiers (Ebly, etc.)</option>
+    </select>
+</div>
+
+
+    <div class="group">
+        <label for="pw-poids">Masse de l'aliment à cuire (grammes) :</label>
+        <input type="number" id="pw-poids" value="200" min="10" oninput="Pasta.calculer()">
+    </div>
+
+    <div class="group">
+        <label for="pw-casserole">Type de votre casserole (sans isolation externe) :</label>
+        <select id="pw-casserole" onchange="Pasta.calculer()">
+            <option value="lourde">Fonte / Inox Épais / Fond capsulé (Garde la chaleur)</option>
+            <option value="legere">Aluminium fin / Inox Léger (+1 min de repos nécessaire)</option>
+        </select>
+    </div>
+
+    <div class="group">
+        <label for="pw-altitude">Altitude de votre cuisine :</label>
+        <select id="pw-altitude" onchange="Pasta.calculer()">
+            <option value="0">Plaine et zones côtières (Ex: Pays-Bas, 0-500m)</option>
+            <option value="1000">Moyenne Montagne (500-1500m) [+1 min feu actif]</option>
+            <option value="2000">Haute Montagne (>1500m) [+2 min feu actif]</option>
+        </select>
+    </div>
+
+    <div class="group row-flex">
+    <div>
+        <label for="pw-tarifKwh">Tarif (€/kWh) :</label>
+        <input type="number" id="pw-tarifKwh" value="0.25" min="0" step="0.01" oninput="Pasta.calculer()">
+    </div>
+    <div>
+        <label>Cumul économisé <a href="#" onclick="Pasta.resetTotals();return false;" style="font-weight:normal;font-size:11px;">(reset)</a></label>
+        <div style="font-size:12px;padding-top:8px;">
+            ⚡<span id="pw-totalWh">0</span>Wh · 💶<span id="pw-totalEur">0.00</span>€<br>🌱<span id="pw-totalCo2">0</span>g CO₂
+        </div>
+    </div>
+</div>
+
+    <div class="box">
+        <strong>💧 Eau requise :</strong> <span id="pw-eau">3.00</span> L | 
+        <strong>🧂 Sel requis :</strong> <span id="pw-sel">30</span> g
+        <div style="margin-top: 8px; font-weight: bold; color: #2c3e50;">Étapes de préparation :</div>
+        <ol class="step-list" id="pw-prepSteps"></ol>
+        
+        <div class="eco-badge" aria-live="polite">
+            📈 Économie sur l'induction : ~<span id="pw-ecoWh">0</span> Wh soit <span id="pw-ecoEur">0.00</span>€
+        </div>
+    </div>
+
+    <div class="timer" id="pw-disp" aria-live="polite">00:00</div>
+    <button id="pw-btn" onclick="Pasta.toggle()">Lancer la cuisson passive</button>
+</div>
+
+<script src="pasta.js"></script>
+</body>
+</html>
