@@ -69,7 +69,7 @@ function calculer() {
 
         whSaved = Math.round(180 + (nbOeufs * 5));
 
-        stepList.innerHTML += `<li>Mettre seulement <strong>${volEau.toFixed(2)}L d'eau</strong> à fin de recouvrir les œuf(s).</li>`;
+        stepList.innerHTML += `<li>Mettre seulement <strong>${volEau.toFixed(2)}L d'eau</strong> afin de recouvrir les œuf(s).</li>`;
         stepList.innerHTML += `<li>Porter à ébullition rapide sous couvercle.</li>`;
         stepList.innerHTML += `<li>Plonger les ${nbOeufs} œuf(s) et maintenir le feu <strong>1 minutes</strong>.</li>`;
         stepList.innerHTML += `<li><strong>COUPEZ LE FEU</strong>, fermez avec un couvercle hermétique (cuisson étouffée/vapeur).</li>`;
@@ -317,7 +317,7 @@ document.addEventListener('visibilitychange', async () => {
             
             if (tempsRestantMs > 0 && 'serviceWorker' in navigator && navigator.serviceWorker.controller) {
                 const cat = document.getElementById('pi-category').value;
-                let aliment = cat === 'oeufs' ? 'vos œufs' : (cat === 'poissons' ? 'votre poisson' : 'votre viande');
+                let aliment = cat === 'oeufs' ? 'vos œufs' : cat === 'poissons' ? 'votre poisson' : cat === 'viande' ? 'votre viande';
                 
                 navigator.serviceWorker.controller.postMessage({
                     type: 'PROGRAMMER_ALERTE',
