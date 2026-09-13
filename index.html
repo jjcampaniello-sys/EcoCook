@@ -110,7 +110,7 @@
   #panel-protin .group{ margin-bottom:14px; }
   #panel-protin label{ display:block; margin-bottom:6px; font-weight:bold; font-size:13px; }
   #panel-protin select, #panel-protin input{ width:100%; padding:9px; border:1px solid #ccc; border-radius:8px; font-size:15px; }
-  #panel-protin .timer-display{ font-size:42px; font-weight:bold; text-align:center; margin:14px 0 10px; color:var(--primary-dark); font-family:monospace; }
+  #panel-protin .timer-display{ font-size:42px; font-weight:bold; text-align:center; margin:14px 0 10px; color:var(--primary-dark); font-family:monospace; cursor:pointer; }
   #panel-protin .btn{ display:block; width:100%; padding:14px; border:none; border-radius:10px; background:var(--primary); color:#fff; font-size:17px; font-weight:bold; cursor:pointer; }
   #panel-protin .steps-box{ background:#f8f9fa; border-left:4px solid var(--primary); padding:12px 14px; margin:16px 0; border-radius:0 8px 8px 0; }
   #panel-protin .steps-box ul{ margin:0; padding-left:20px; }
@@ -363,7 +363,7 @@
         💧 Eau minimale recommandée : <strong><span id="pi-eau">0</span> L</strong>
     </div>
 
-    <div class="timer-display" id="pi-disp">00:00</div>
+    <div class="timer-display" id="pi-disp" onclick="Protin.passerEnPassif()">00:00</div>
     <button id="pi-btn" class="btn" onclick="Protin.toggle()">Démarrer la cuisson</button>
 
     <div class="stats-grid">
@@ -1102,6 +1102,21 @@ function resetTimerState() {
     document.getElementById('pi-disp').dataset.phase = "idle";
 }
 
+function passerEnPassif() {
+    if (!active || phaseCuisson !== "active") return;
+    clearInterval(inter);
+    const disp = document.getElementById('pi-disp');
+    phaseCuisson = "passive";
+    localStorage.setItem('protin_phase', phaseCuisson);
+    disp.dataset.phase = "passive";
+    sec = parseInt(disp.dataset.tPassive) || 0;
+    showTime();
+    endTimestamp = Date.now() + sec * 1000;
+    localStorage.setItem('protin_end', endTimestamp);
+    AlerteIntermediaireProtin();
+    inter = setInterval(tick, 1000);
+}
+
 function tick() {
     const remaining = Math.round((endTimestamp - Date.now()) / 1000);
     sec = Math.max(0, remaining);
@@ -1110,13 +1125,7 @@ function tick() {
     if (remaining <= 0) {
         const disp = document.getElementById('pi-disp');
         if (phaseCuisson === "active") {
-            phaseCuisson = "passive";
-            localStorage.setItem('protin_phase', phaseCuisson);
-            disp.dataset.phase = "passive";
-            sec = parseInt(disp.dataset.tPassive) || 0;
-            endTimestamp = Date.now() + sec * 1000;
-            localStorage.setItem('protin_end', endTimestamp);
-            AlerteIntermediaireProtin();
+            passerEnPassif();
             return;
         }
         clearInterval(inter); 
@@ -1380,7 +1389,7 @@ window.onload = () => {
 };
 
 
-window.Protin = { calculer, toggle, toggleInputs, resetTotals };
+window.Protin = { calculer, toggle, toggleInputs, resetTotals, passerEnPassif };
 })();
 
 </script>
@@ -1820,7 +1829,8 @@ async function requestWakeLock() {
 }
 
 document.addEventListener('visibilitychange', async () => {
-    if (wakeLock !== null && document.visibilityState === 'visible' && active) {
+    if (document.visibilityState === 'visible' && active) {
+    tick();
         await requestWakeLock();
     }
 });
