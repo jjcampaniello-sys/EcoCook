@@ -284,6 +284,12 @@
             <option value="dur">🥚 Dur (Jaune ferme mais non sec)</option>
         </select>
 
+        <label for="pi-methodeOeuf" style="margin-top: 10px;">Mode de cuisson :</label>
+        <select id="pi-methodeOeuf" onchange="Protin.calculer()">
+            <option value="poche">🫕 Poché à l'eau (Coque / Mollet / Dur)</option>
+            <option value="poele">🍳 Au plat à la poêle</option>
+        </select>
+
         <label for="pi-tailleOeuf" style="margin-top: 10px;">Calibre de l'œuf :</label>
         <select id="pi-tailleOeuf" onchange="Protin.calculer()">
             <option value="S">S (&lt; 53g)</option>
@@ -942,29 +948,45 @@ function calculer() {
 
     if (cat === 'oeufs') {
         const typeCuisson = document.getElementById('pi-cuissonOeuf').value;
+        const methodeOeuf = document.getElementById('pi-methodeOeuf').value;
         const calibre = document.getElementById('pi-tailleOeuf').value;
         const nbOeufs = Math.round(quantite);
 
-        volEau = Math.min(1.2, 0.15 + (nbOeufs * 0.08));
-
-        let baseTime = configOeufs[typeCuisson].baseMin * 60;
         let pRef = 60;
         let pReel = calibresOeufs[calibre];
-        
         let coefPoids = Math.pow(pReel / pRef, 2/3);
 
-        let tSeconds = Math.round(baseTime * coefPoids);
-        if (cass === 'legere') tSeconds += 20;
-        tActive = 60;
-        tPassive = Math.max(0, tSeconds - tActive);
+        if (methodeOeuf === 'poele') {
+            document.getElementById('pi-infoEau').style.display = "block";
+            volEau = 0.03; // eau vapeur, pas de trempage
 
-        whSaved = Math.round(180 + (nbOeufs * 5));
+            tActive = 30;
+            tPassive = Math.round((90 + (nbOeufs * 5)) * coefPoids);
+            whSaved = Math.round(90 + (nbOeufs * 3));
 
-        stepList.innerHTML += `<li>Mettre seulement <strong>${volEau.toFixed(2)}L d'eau</strong> à fin de recouvrir les œuf(s).</li>`;
-        stepList.innerHTML += `<li>Porter à ébullition rapide sous couvercle.</li>`;
-        stepList.innerHTML += `<li>Plonger les ${nbOeufs} œuf(s) et maintenir le feu <strong>1 minutes</strong>.</li>`;
-        stepList.innerHTML += `<li><strong>COUPEZ LE FEU</strong>, fermez avec un couvercle hermétique (cuisson étouffée/vapeur).</li>`;
-        stepList.innerHTML += `<li>À la fin du temps, plongez les œufs dans l'eau froide pour stopper la cuisson.</li>`;
+            stepList.innerHTML += `<li>Chauffer la poêle antiadhésive à feu moyen avec un filet d'huile ou une noisette de beurre.</li>`;
+            stepList.innerHTML += `<li>Casser les ${nbOeufs} œuf(s) dans la poêle, laisser prendre le blanc 30 secondes.</li>`;
+            stepList.innerHTML += `<li>Ajouter <strong>1 cuillère à soupe d'eau</strong> par œuf sur le bord de la poêle.</li>`;
+            stepList.innerHTML += `<li>Mettre immédiatement un <strong>COUVERCLE</strong> et <strong>COUPER LE FEU</strong> : la vapeur termine de cuire le dessus du blanc sans retourner.</li>`;
+            stepList.innerHTML += `<li>Laisser reposer sous couvercle selon la texture de jaune souhaitée.</li>`;
+
+        } else {
+            volEau = Math.min(1.2, 0.15 + (nbOeufs * 0.08));
+
+            let baseTime = configOeufs[typeCuisson].baseMin * 60;
+            let tSeconds = Math.round(baseTime * coefPoids);
+            if (cass === 'legere') tSeconds += 20;
+            tActive = 60;
+            tPassive = Math.max(0, tSeconds - tActive);
+
+            whSaved = Math.round(180 + (nbOeufs * 5));
+
+            stepList.innerHTML += `<li>Mettre seulement <strong>${volEau.toFixed(2)}L d'eau</strong> à fin de recouvrir les œuf(s).</li>`;
+            stepList.innerHTML += `<li>Porter à ébullition rapide sous couvercle.</li>`;
+            stepList.innerHTML += `<li>Plonger les ${nbOeufs} œuf(s) et maintenir le feu <strong>1 minute</strong>.</li>`;
+            stepList.innerHTML += `<li><strong>COUPEZ LE FEU</strong>, fermez avec un couvercle hermétique (cuisson étouffée/vapeur).</li>`;
+            stepList.innerHTML += `<li>À la fin du temps, plongez les œufs dans l'eau froide pour stopper la cuisson.</li>`;
+        }
 
     } else if (cat === 'viandes') {
         const typeViande = document.getElementById('pi-typeViande').value;
