@@ -648,14 +648,35 @@ function tick() {
     }
 }
 
+function getNomAlimentPasta() {
+    const cat = document.getElementById('pw-category').value;
+    if (cat === 'pates') return "les pâtes";
+    if (cat === 'riz') return "le riz";
+    return "les céréales";
+}
+
 // Petite fonction audio d'aide à ajouter pour la transition
 function AlerteIntermediaire() {
+    const nomAliment = getNomAlimentPasta();
     try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'triangle';
+        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.25);
+    } catch(e){}
+
+    setTimeout(() => {
         if ('speechSynthesis' in window) {
-            const msg = new SpeechSynthesisUtterance("Ébullition terminée. Coupez le feu et mettez le couvercle.");
+            const msg = new SpeechSynthesisUtterance(`Ébullition terminée pour ${nomAliment}. Coupez le feu et mettez le couvercle.`);
             msg.lang = 'fr-FR'; window.speechSynthesis.speak(msg);
         }
-    } catch(e){}
+    }, 300);
 }
 
 function demanderPermissionNotifications() {
@@ -709,23 +730,22 @@ function toggle() {
 
 
 function declencherAlerteVocale() {
-    const cat = document.getElementById('pw-category').value;
-    let nomAliment = "votre préparation";
-    if (cat === 'pates') nomAliment = "les pâtes";
-    else if (cat === 'riz') nomAliment = "le riz";
-    else nomAliment = "les céréales";
+    const nomAliment = getNomAlimentPasta();
 
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(587.33, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime);
-        oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.4);
+        [587.33, 783.99].forEach((freq, i) => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.22);
+            gainNode.gain.setValueAtTime(0.6, audioCtx.currentTime + i * 0.22);
+            oscillator.start(audioCtx.currentTime + i * 0.22);
+            oscillator.stop(audioCtx.currentTime + i * 0.22 + 0.2);
+        });
     } catch(e) {}
 
     setTimeout(() => {
@@ -1122,13 +1142,35 @@ function tick() {
     }
 }
 
+function getNomAlimentProtin() {
+    const cat = document.getElementById('pi-category').value;
+    if (cat === 'oeufs') return "les œufs";
+    if (cat === 'viandes') return "la viande";
+    if (cat === 'poissons') return "le poisson";
+    return "votre préparation";
+}
+
 function AlerteIntermediaireProtin() {
+    const nomAliment = getNomAlimentProtin();
     try {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
+        oscillator.start(); oscillator.stop(audioCtx.currentTime + 0.3);
+    } catch(e){}
+
+    setTimeout(() => {
         if ('speechSynthesis' in window) {
-            const msg = new SpeechSynthesisUtterance("Coupez le feu et couvrez.");
+            const msg = new SpeechSynthesisUtterance(`Cuisson active terminée pour ${nomAliment}. Coupez le feu et couvrez.`);
             msg.lang = 'fr-FR'; window.speechSynthesis.speak(msg);
         }
-    } catch(e){}
+    }, 350);
 }
 
 function toggle() {
@@ -1249,29 +1291,27 @@ document.addEventListener('visibilitychange', async () => {
 
 
 function declencherAlerteVocale() {
-    const cat = document.getElementById('pi-category').value;
-    let nomAliment = "votre préparation";
-    if (cat === 'oeufs') nomAliment = "les œufs";
-    else if (cat === 'viandes') nomAliment = "la viande";
-    else if (cat === 'poissons') nomAliment = "le poisson";
+    const nomAliment = getNomAlimentProtin();
 
     try {
         if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
-        const oscillator = audioCtx.createOscillator();
-        const gainNode = audioCtx.createGain();
-        oscillator.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        oscillator.type = 'sine';
-        oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime);
-        oscillator.start(); 
-        oscillator.stop(audioCtx.currentTime + 0.5);
+        [523.25, 392.00].forEach((freq, i) => {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.type = 'sine';
+            oscillator.frequency.setValueAtTime(freq, audioCtx.currentTime + i * 0.25);
+            gainNode.gain.setValueAtTime(0.5, audioCtx.currentTime + i * 0.25);
+            oscillator.start(audioCtx.currentTime + i * 0.25);
+            oscillator.stop(audioCtx.currentTime + i * 0.25 + 0.22);
+        });
     } catch(e) {}
 
     setTimeout(() => {
         if ('speechSynthesis' in window) {
-            const message = new SpeechSynthesisUtterance(`La cuisson optimale pour ${nomAliment} est terminée. Récupérez votre préparation.`);
+            const message = new SpeechSynthesisUtterance(`Cuisson passive terminée pour ${nomAliment}. Récupérez votre préparation.`);
             message.lang = 'fr-FR'; 
             window.speechSynthesis.speak(message);
         } else {
@@ -1653,6 +1693,30 @@ function calculer() {
     }
 }
 
+function getNomLegume() {
+    if (recipeType === 'multi') return "vos légumes";
+    const cat = document.getElementById('sv-catLegume').value;
+    const noms = {
+        feuilles: "les légumes à feuilles",
+        choux: "les choux",
+        fibreux: "les légumes fibreux",
+        fruits: "les légumes fruits",
+        racines: "les racines",
+        lentilles: "les lentilles",
+        legumineuses_trempees: "les légumineuses",
+        surgeles: "les légumes surgelés"
+    };
+    return noms[cat] || "vos légumes";
+}
+
+function cleanPhaseName(name) {
+    return name
+        .replace(/^Phase\s*Finale\s*:\s*/i, '')
+        .replace(/^Phase\s*\d+\s*:\s*/i, '')
+        .replace(/^Cuisson (Active|Passive)\s*/i, '')
+        .trim();
+}
+
 function updateUI() {
     const m = Math.floor(sec / 60).toString().padStart(2, '0');
     const s = (sec % 60).toString().padStart(2, '0');
@@ -1671,14 +1735,18 @@ function tick() {
         currentPhase++;
 
         if (currentPhase < phases.length) {
-            const message = phases[currentPhase].name;
+            const nextPhase = phases[currentPhase];
+            const nomLegume = getNomLegume();
+            const message = nextPhase.activeHeat
+                ? cleanPhaseName(nextPhase.name)
+                : `Cuisson active terminée pour ${nomLegume}. ${cleanPhaseName(nextPhase.name)}.`;
             faireDeuxBipsAigus(() => {
                 declencherSignalSonore(message);
             });
 
-            sec = phases[currentPhase].dur;
+            sec = nextPhase.dur;
             endTimestamp = Date.now() + sec * 1000;
-            document.getElementById('sv-disp').dataset.phase = phases[currentPhase].activeHeat ? "active" : "passive";
+            document.getElementById('sv-disp').dataset.phase = nextPhase.activeHeat ? "active" : "passive";
         } else {
             clearInterval(inter);
             active = false;
@@ -1688,7 +1756,7 @@ function tick() {
             document.getElementById('sv-disp').dataset.phase = "idle";
 
             faireTroisBips(() => {
-                declencherSignalSonore("Cuisson terminée ! Vos légumes sont prêts.");
+                declencherSignalSonore(`Cuisson passive terminée pour ${getNomLegume()}. Prêt à servir.`);
             });
 
             enregistrerEconomies();
@@ -1702,9 +1770,9 @@ function jouersoundBip(frequence = 1000, duree = 0.15) {
         const oscillator = audioCtx.createOscillator();
         const gainNode = audioCtx.createGain();
 
-        oscillator.type = 'sine';
+        oscillator.type = 'square';
         oscillator.frequency.setValueAtTime(frequence, audioCtx.currentTime);
-        gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.18, audioCtx.currentTime);
 
         oscillator.connect(gainNode);
         gainNode.connect(audioCtx.destination);
@@ -1733,7 +1801,7 @@ function faireTroisBips(callback) {
     const interBip = setInterval(() => {
         jouersoundBip(1000, 0.15);
         bips++;
-        if (bips >= 4) {
+        if (bips >= 3) {
             clearInterval(interBip);
             if (callback) setTimeout(callback, 300);
         }
