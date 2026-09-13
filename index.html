@@ -59,7 +59,7 @@
   .dash-pill.running .dash-time{ color:#c0392b; }
   .dash-pill.phase-passive{ background:#dbe9fb; }
   .dash-pill.phase-passive .dash-time{ color:#1a5276; }
-
+#dash-global{ text-align:center; font-size:12px; padding:4px 0 8px; color:#555; }
   /* ---- Onglets ---- */
   #tabs{
     display:flex;
@@ -159,7 +159,8 @@
     <span class="dash-time" id="dash-time-slowveg">00:00</span>
   </div>
 </div>
-
+  
+<div id="dash-global">⚡<span id="dg-wh">0</span>Wh · 💶<span id="dg-eur">0.00</span>€ · 🌱<span id="dg-co2">0</span>g CO₂</div>
 <div id="tabs">
   <button class="tab-btn selected" id="tabbtn-pasta" onclick="Merge.selectTab('pasta')">🍝 PastaWatts</button>
   <button class="tab-btn" id="tabbtn-protin" onclick="Merge.selectTab('protin')">🥩 Prot-in Watts</button>
@@ -1924,6 +1925,17 @@ window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
       }
     });
   }
+  function refreshGlobalTotals(){
+  const src = ['pastawatts_totals','protin_totals','slowveg_totals'];
+  const t = src.reduce((a,k)=>{
+    const d = JSON.parse(localStorage.getItem(k) || '{"wh":0,"eur":0,"co2":0}');
+    return { wh:a.wh+d.wh, eur:a.eur+d.eur, co2:a.co2+d.co2 };
+  }, {wh:0,eur:0,co2:0});
+  document.getElementById('dg-wh').textContent = Math.round(t.wh);
+  document.getElementById('dg-eur').textContent = t.eur.toFixed(2);
+  document.getElementById('dg-co2').textContent = Math.round(t.co2);
+}
+setInterval(refreshGlobalTotals, 500);
   setInterval(refreshDashboard, 500);
 
   window.Merge = { selectTab };
