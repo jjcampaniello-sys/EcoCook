@@ -57,6 +57,8 @@
   }
   .dash-pill.running{ background:#ffe8e0; }
   .dash-pill.running .dash-time{ color:#c0392b; }
+  .dash-pill.phase-passive{ background:#dbe9fb; }
+  .dash-pill.phase-passive .dash-time{ color:#1a5276; }
 
   /* ---- Onglets ---- */
   #tabs{
@@ -596,6 +598,7 @@ function toggleInputs() {
     releaseWakeLock();
     document.getElementById('pw-btn').innerText = "Lancer la cuisson passive";
     document.getElementById('pw-btn').style.background = "var(--green)";
+    document.getElementById('pw-disp').dataset.phase = "idle";
     calculer();
 }
 function showTime() {
@@ -614,6 +617,7 @@ function tick() {
             // TRANSITION : La phase active est finie, on passe à la phase passive
             phaseCuisson = "passive";
             localStorage.setItem('pastawatts_phase', phaseCuisson);
+            document.getElementById('pw-disp').dataset.phase = "passive";
             
             sec = parseInt(document.getElementById('pw-disp').dataset.tPassive) || 0;
             endTimestamp = Date.now() + sec * 1000;
@@ -629,6 +633,7 @@ function tick() {
             clearInterval(inter); active = false;
             const b = document.getElementById('pw-btn');
             b.innerText = "Terminé !"; b.style.background = "#34495e";
+            document.getElementById('pw-disp').dataset.phase = "idle";
             releaseWakeLock();
             localStorage.removeItem('pastawatts_end');
             localStorage.removeItem('pastawatts_phase');
@@ -668,6 +673,7 @@ function toggle() {
     if (active) {
         clearInterval(inter); active = false;
         b.innerText = "Reprendre la cuisson"; b.style.background = "var(--green)";
+        document.getElementById('pw-disp').dataset.phase = "idle";
         releaseWakeLock();
         localStorage.removeItem('pastawatts_end');
         localStorage.removeItem('pastawatts_phase');
@@ -686,6 +692,7 @@ function toggle() {
         
         b.innerText = phaseCuisson === "active" ? "ÉBULLITION ACTIVE..." : "CUISSON PASSIVE (Hors du feu)...";
         b.style.background = "var(--red)";
+        document.getElementById('pw-disp').dataset.phase = phaseCuisson;
         requestWakeLock();
         
         sessionWh = parseFloat(document.getElementById('pw-ecoWh').innerText) || 0;
@@ -832,6 +839,7 @@ window.onload = () => {
             active = true;
             b.innerText = phaseCuisson === "active" ? "ÉBULLITION ACTIVE..." : "CUISSON PASSIVE (Hors du feu)..."; 
             b.style.background = "var(--red)";
+            document.getElementById('pw-disp').dataset.phase = phaseCuisson;
             requestWakeLock();
             clearInterval(inter);
             inter = setInterval(tick, 1000);
@@ -841,11 +849,13 @@ window.onload = () => {
             localStorage.removeItem('pastawatts_phase');
             b.innerText = "Lancer la cuisson passive";
             b.style.background = "var(--green)";
+            document.getElementById('pw-disp').dataset.phase = "idle";
         }
     } else {
         // État par défaut si aucune cuisson n'est enregistrée
         b.innerText = "Lancer la cuisson passive";
         b.style.background = "var(--green)";
+        document.getElementById('pw-disp').dataset.phase = "idle";
     }
 };
 
@@ -861,6 +871,7 @@ const gCO2ParKwh = 60; // Mix électrique français moyen (~60g/kWh)
 let sessionWh = 0, sessionEur = 0;
 let endTimestamp = null, audioCtx = null;
 let sec = 0, active = false, inter = null, wakeLock = null;
+let phaseCuisson = "active";
 
 const configOeufs = {
     coque:  { baseMin: 6.5 },
@@ -904,7 +915,7 @@ function calculer() {
     const tarifKwh = parseFloat(document.getElementById('pi-tarifKwh').value) || 0.25;
     const stepList = document.getElementById('pi-prepSteps');
 
-    let volEau = 0, tSeconds = 0, whSaved = 0;
+    let volEau = 0, tActive = 0, tPassive = 0, whSaved = 0;
     stepList.innerHTML = "";
     document.getElementById('pi-infoEau').style.display = "block";
 
@@ -921,8 +932,10 @@ function calculer() {
         
         let coefPoids = Math.pow(pReel / pRef, 2/3);
 
-        tSeconds = Math.round(baseTime * coefPoids);
+        let tSeconds = Math.round(baseTime * coefPoids);
         if (cass === 'legere') tSeconds += 20;
+        tActive = 60;
+        tPassive = Math.max(0, tSeconds - tActive);
 
         whSaved = Math.round(180 + (nbOeufs * 5));
 
@@ -943,7 +956,9 @@ function calculer() {
             let tempsSec = (quantite / 100) * (typeViande === 'volaille' || typeViande === 'porc' ? 180 : 130);
             if (cuisson === 'biencuit') tempsSec *= 1.35;
             
-            tSeconds = Math.round(tempsSec);
+            let tSeconds = Math.round(tempsSec);
+            tActive = 120;
+            tPassive = Math.max(0, tSeconds - tActive);
             whSaved = 110;
 
             stepList.innerHTML += `<li>Chauffer la poêle antiadhésive à sec à feu moyen (sans huile/beurre).</li>`;
@@ -957,7 +972,9 @@ function calculer() {
             let tempsSec = (quantite / 1000) * 2400;
             if (typeViande === 'boeuf' || typeViande === 'gibier') tempsSec *= 1.25;
             
-            tSeconds = Math.round(tempsSec);
+            let tSeconds = Math.round(tempsSec);
+            tActive = 540;
+            tPassive = Math.max(0, tSeconds - tActive);
             whSaved = 420;
 
             stepList.innerHTML += `<li>Colorer brièvement la viande et les aromates dans votre cocotte.</li>`;
@@ -971,7 +988,8 @@ function calculer() {
             let tempsSec = (quantite / 100) * 75;
             if (typeViande === 'volaille') tempsSec *= 0.85;
             
-            tSeconds = Math.round(tempsSec);
+            tActive = Math.round(tempsSec);
+            tPassive = 120;
             whSaved = Math.round(150 * rendementMicroonde);
 
             stepList.innerHTML += `<li>Disposer la viande dans un plat adapté avec 1 cuillère à soupe d'eau au fond.</li>`;
@@ -992,7 +1010,8 @@ function calculer() {
             if (typeP === 'ferme') tempsSec = 480;
             if (typeP === 'gras') tempsSec = 360;
             if (typeP === 'crustaces') tempsSec = 180;
-            tSeconds = tempsSec;
+            tActive = 0;
+            tPassive = tempsSec;
             whSaved = 200;
 
             stepList.innerHTML += `<li>Porter <strong>${volEau.toFixed(2)}L d'eau</strong> (ou court-bouillon) à ébullition sous couvercle.</li>`;
@@ -1006,7 +1025,9 @@ function calculer() {
             if (typeP === 'ferme') tempsSec *= 1.4;
             if (typeP === 'gras') tempsSec *= 1.15;
             if (typeP === 'crustaces') tempsSec = 120;
-            tSeconds = Math.round(tempsSec);
+            let tSeconds = Math.round(tempsSec);
+            tActive = 45;
+            tPassive = Math.max(0, tSeconds - tActive);
             whSaved = 90;
 
             stepList.innerHTML += `<li>Chauffer la poêle à feu moyen (à sec ou très légèrement huilée).</li>`;
@@ -1019,7 +1040,8 @@ function calculer() {
             if (typeP === 'ferme') tempsSec *= 1.2;
             if (typeP === 'gras') tempsSec *= 1.1;
             if (typeP === 'crustaces') tempsSec = (quantite / 100) * 30;
-            tSeconds = Math.round(tempsSec);
+            tActive = Math.round(tempsSec);
+            tPassive = 90;
             whSaved = Math.round(130 * rendementMicroonde);
 
             stepList.innerHTML += `<li>Placer le poisson dans un plat couvert avec 1 c. à soupe d'eau ou de citron.</li>`;
@@ -1033,8 +1055,14 @@ function calculer() {
     document.getElementById('pi-ecoEur').innerText = (Math.max(0, whSaved) * (tarifKwh / 1000)).toFixed(2);
     document.getElementById('pi-ecoCo2').innerText = Math.round(Math.max(0, whSaved) * gCO2ParKwh / 1000);
 
+    const disp = document.getElementById('pi-disp');
+    disp.dataset.tActive = tActive;
+    disp.dataset.tPassive = tPassive;
+
     if (!active) {
-        sec = tSeconds;
+        sec = tActive > 0 ? tActive : tPassive;
+        phaseCuisson = tActive > 0 ? "active" : "passive";
+        disp.dataset.phase = "idle";
         showTime();
     }
 }
@@ -1051,6 +1079,7 @@ function resetTimerState() {
     const btn = document.getElementById('pi-btn');
     btn.innerText = "Démarrer la cuisson";
     btn.style.background = "var(--primary)";
+    document.getElementById('pi-disp').dataset.phase = "idle";
 }
 
 function tick() {
@@ -1059,14 +1088,27 @@ function tick() {
     showTime();
     
     if (remaining <= 0) {
+        const disp = document.getElementById('pi-disp');
+        if (phaseCuisson === "active") {
+            phaseCuisson = "passive";
+            localStorage.setItem('protin_phase', phaseCuisson);
+            disp.dataset.phase = "passive";
+            sec = parseInt(disp.dataset.tPassive) || 0;
+            endTimestamp = Date.now() + sec * 1000;
+            localStorage.setItem('protin_end', endTimestamp);
+            AlerteIntermediaireProtin();
+            return;
+        }
         clearInterval(inter); 
         active = false;
         const b = document.getElementById('pi-btn');
         b.innerText = "Cuisson Terminée !"; 
         b.style.background = "#34495e";
+        disp.dataset.phase = "idle";
         
         releaseWakeLock();
         localStorage.removeItem('protin_end');
+        localStorage.removeItem('protin_phase');
         
         const co2 = sessionWh * gCO2ParKwh / 1000;
         const totals = JSON.parse(localStorage.getItem('protin_totals') || '{"wh":0,"eur":0,"co2":0}');
@@ -1080,6 +1122,15 @@ function tick() {
     }
 }
 
+function AlerteIntermediaireProtin() {
+    try {
+        if ('speechSynthesis' in window) {
+            const msg = new SpeechSynthesisUtterance("Coupez le feu et couvrez.");
+            msg.lang = 'fr-FR'; window.speechSynthesis.speak(msg);
+        }
+    } catch(e){}
+}
+
 function toggle() {
     const b = document.getElementById('pi-btn');
     if (active) {
@@ -1087,6 +1138,7 @@ function toggle() {
         active = false;
         b.innerText = "Reprendre la cuisson"; 
         b.style.background = "var(--primary)";
+        document.getElementById('pi-disp').dataset.phase = "idle";
         releaseWakeLock();
         localStorage.removeItem('protin_end');
     } else {
@@ -1094,14 +1146,22 @@ function toggle() {
             try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
         }
         active = true; 
+        const disp = document.getElementById('pi-disp');
+        let actSec = parseInt(disp.dataset.tActive) || 0;
+        if (sec === 0 || (!localStorage.getItem('protin_end') && actSec === 0)) {
+            phaseCuisson = "passive";
+            sec = parseInt(disp.dataset.tPassive) || 0;
+        }
         b.innerText = "PAUSE (Cuisson en cours...)"; 
         b.style.background = "var(--red)";
+        disp.dataset.phase = phaseCuisson;
         
         requestWakeLock();
         sessionWh = parseFloat(document.getElementById('pi-ecoWh').innerText) || 0;
         sessionEur = parseFloat(document.getElementById('pi-ecoEur').innerText) || 0;
         endTimestamp = Date.now() + sec * 1000;
         localStorage.setItem('protin_end', endTimestamp);
+        localStorage.setItem('protin_phase', phaseCuisson);
         // AJOUT SÉCURITÉ : Nettoyer l'intervalle avant d'en créer un nouveau
         clearInterval(inter); 
         inter = setInterval(tick, 1000);
@@ -1255,8 +1315,10 @@ window.onload = () => {
     }
 
     const savedEnd = localStorage.getItem('protin_end');
+    const savedPhase = localStorage.getItem('protin_phase');
     if (savedEnd) {
         endTimestamp = parseInt(savedEnd, 10);
+        phaseCuisson = savedPhase || "passive";
         const remaining = Math.round((endTimestamp - Date.now()) / 1000);
         if (remaining > 0) {
             sec = remaining; 
@@ -1265,11 +1327,14 @@ window.onload = () => {
             const b = document.getElementById('pi-btn');
             b.innerText = "PAUSE (Cuisson en cours...)"; 
             b.style.background = "var(--red)";
+            document.getElementById('pi-disp').dataset.phase = phaseCuisson;
             requestWakeLock();
             clearInterval(inter);
             inter = setInterval(tick, 1000);
         } else {
             localStorage.removeItem('protin_end');
+            localStorage.removeItem('protin_phase');
+            document.getElementById('pi-disp').dataset.phase = "idle";
         }
     }
 };
@@ -1583,6 +1648,7 @@ function calculer() {
     if (!active) {
         currentPhase = 0;
         sec = (phases && phases.length > 0) ? phases[0].dur : 0;
+        document.getElementById('sv-disp').dataset.phase = "idle";
         updateUI();
     }
 }
@@ -1612,12 +1678,14 @@ function tick() {
 
             sec = phases[currentPhase].dur;
             endTimestamp = Date.now() + sec * 1000;
+            document.getElementById('sv-disp').dataset.phase = phases[currentPhase].activeHeat ? "active" : "passive";
         } else {
             clearInterval(inter);
             active = false;
 
             document.getElementById('sv-btn').innerText = "Cuisson Terminée !";
             document.getElementById('sv-btn').style.background = "#34495e";
+            document.getElementById('sv-disp').dataset.phase = "idle";
 
             faireTroisBips(() => {
                 declencherSignalSonore("Cuisson terminée ! Vos légumes sont prêts.");
@@ -1696,10 +1764,12 @@ function toggle() {
         active = false;
         b.innerText = "Reprendre";
         b.style.background = "var(--primary)";
+        document.getElementById('sv-disp').dataset.phase = "idle";
     } else {
         active = true;
         b.innerText = "PAUSE";
         b.style.background = "var(--red)";
+        document.getElementById('sv-disp').dataset.phase = (phases[currentPhase] && phases[currentPhase].activeHeat) ? "active" : "passive";
         endTimestamp = Date.now() + sec * 1000;
         inter = setInterval(tick, 1000);
         requestWakeLock();
@@ -1766,13 +1836,13 @@ window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
   function refreshDashboard(){
     tabs.forEach(t => {
       const disp = document.getElementById(dispIds[t]);
-      const btn = document.getElementById(btnIds[t]);
       const dashTime = document.getElementById('dash-time-' + t);
       const dashPill = document.getElementById('dash-' + t);
       if (disp && dashTime) dashTime.textContent = disp.textContent;
-      if (btn && dashPill){
-        const running = btn.style.background && (btn.style.background.indexOf('192, 57, 43') !== -1 || btn.style.background.indexOf('--red') !== -1 || getComputedStyle(btn).backgroundColor === 'rgb(192, 57, 43)');
-        dashPill.classList.toggle('running', !!running);
+      if (disp && dashPill){
+        const phase = disp.dataset.phase || "idle";
+        dashPill.classList.toggle('running', phase === 'active');
+        dashPill.classList.toggle('phase-passive', phase === 'passive');
       }
     });
   }
