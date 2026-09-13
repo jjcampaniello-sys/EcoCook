@@ -839,7 +839,8 @@ function resetTotals() {
         displayTotals();
     }
 }
-window.onload = () => {
+''window.onload = () => {
+  window.addEventListener('load', () => {
     displayTotals();
     calculer();
     
@@ -1368,7 +1369,8 @@ function resetTotals() {
     }
 }
 
-window.onload = () => {
+''window.onload = () => {
+  window.addEventListener('load', () => {
     displayTotals();
     calculer();
     
@@ -1907,8 +1909,9 @@ function resetTotals() {
         afficherTotals();
     }
 }
-
-window.onload = () => { afficherTotals(); calculer(); };
+''window.onload = () => {
+  window.addEventListener('load', () => { afficherTotals(); calculer(); };
+''window.onload = () => { afficherTotals(); calculer(); };
 
 
 window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
