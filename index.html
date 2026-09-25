@@ -847,6 +847,7 @@ function resetTotals() {
 window.addEventListener('load', () => {
     displayTotals();
     calculer();
+    document.getElementById('pw-disp').innerText = "00:00";
     
     // 1. Enregistrement du Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
@@ -1376,6 +1377,7 @@ function resetTotals() {
 window.addEventListener('load', () => {
     displayTotals();
     calculer();
+    document.getElementById('pi-disp').innerText = "00:00";
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
@@ -1838,7 +1840,7 @@ function resetTotals() {
     }
 }
 
-window.addEventListener('load', () => { afficherTotals(); calculer(); });
+window.addEventListener('load', () => { afficherTotals(); calculer(); document.getElementById('sv-disp').innerText = "00:00"; });
 
 
 window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
