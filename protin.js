@@ -379,9 +379,12 @@ function resetTotals() {
     }
 }
 
-window.onload = () => {
+Prot-in Watts (même endroit) :
+window.addEventListener('load', () => {
     displayTotals();
     calculer();
+    document.getElementById('pi-disp').innerText = "00:00";   // ← AJOUT
+
     
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js')
