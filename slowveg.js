@@ -455,7 +455,12 @@ function resetTotals() {
     }
 }
 
-window.onload = () => { afficherTotals(); calculer(); };
+window.addEventListener('load', () => {
+    afficherTotals();
+    calculer();
+    document.getElementById('sv-disp').innerText = "00:00";   // ← AJOUT
+});
+
 
 
 window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
