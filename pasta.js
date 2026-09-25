@@ -341,9 +341,10 @@ function resetTotals() {
         displayTotals();
     }
 }
-window.onload = () => {
+window.addEventListener('load', () => {
     displayTotals();
     calculer();
+    document.getElementById('pw-disp').innerText = "00:00";   // ← AJOUT
     
     // 1. Enregistrement du Service Worker (sw.js)
     if ('serviceWorker' in navigator) {
