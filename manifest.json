@@ -1,5 +1,6 @@
 {
   "name": "EcoCook",
+    "id": "ecocook-pwa",
   "short_name": "EcoCook",
   "description": "Cuisson passive : pâtes, riz, protéines et légumes avec 3 minuteurs indépendants.",
   "lang": "fr",
