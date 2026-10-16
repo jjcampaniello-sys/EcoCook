@@ -1857,6 +1857,18 @@ window.SlowVeg = { setRecipeType, calculer, toggle, resetTotals };
 (function(){
   "use strict";
   const tabs = ['pasta','protin','slowveg'];
+    // Mémorisation du tarif électrique (un champ par section)
+  ['pw-tarifKwh', 'pi-tarifKwh', 'sv-tarifKwh'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    try {
+      const saved = localStorage.getItem('ecocook_' + id);
+      if (saved !== null && saved !== '') el.value = saved;
+    } catch (e) {}
+    el.addEventListener('input', () => {
+      try { localStorage.setItem('ecocook_' + id, el.value); } catch (e) {}
+    });
+  });
 
   function selectTab(name){
     tabs.forEach(t => {
