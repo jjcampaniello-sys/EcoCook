@@ -100,7 +100,9 @@ function calculer() {
 
         } else if (methode === 'soupe') {
             tPassif += 300;
-            stepList.innerHTML += `<li>Porter le bouillon à ébullition dans votre faitout inox sous couvercle (${Math.floor(tActif/60)} min ${tActif%60} s).</li>`;
+                        const volSoupeL = (poids * 2.5 / 1000).toFixed(1);
+            stepList.innerHTML += `<li>Verser environ <strong>${volSoupeL} L</strong> d'eau ou de bouillon (à ajuster au mixage selon l'épaisseur voulue).</li>`;
+            stepList.innerHTML += `<li>Porter à ébullition dans votre faitout inox sous couvercle (${Math.floor(tActif/60)} min ${tActif%60} s).</li>`;
             stepList.innerHTML += `<li><strong>COUPEZ LE FEU</strong>. L'inertie du liquide cuit les légumes à cœur avant de mixer.</li>`;
 
             phases.push({ name: "Cuisson Active (Ébullition)", dur: tActif, activeHeat: true });
@@ -233,7 +235,8 @@ function calculer() {
             phases.push({ name: "Phase Finale : Repos à l'étouffée (Feu coupé)", dur: Math.round(480 * coefDecoupe * coefPassifMulti), activeHeat: false });
 
         } else if (methode === 'soupe') {
-            stepList.innerHTML += `<li>Utiliser un faitout avec le bouillon.</li>`;
+          const volSoupeL = (poids * 2.5 / 1000).toFixed(1);
+            stepList.innerHTML += `<li>Utiliser un faitout avec environ <strong>${volSoupeL} L</strong> d'eau ou de bouillon (à ajuster au mixage).</li>`;
            let racinesDurSoupe = Math.round(dureesBase.racines.actif * coefDecoupe * coefMasse);
             let fruitsDurSoupe = hasFruits ? Math.round(dureesBase.fruits.actif * coefDecoupe * coefMasse * 0.67) : 0;
             if (hasRacines) {
