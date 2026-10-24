@@ -1,4 +1,4 @@
-const CACHE = 'ecocook-v1';
+const CACHE = 'ecocook-v2';
 const ASSETS = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
