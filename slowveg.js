@@ -12,7 +12,7 @@ const dureesBase = {
     feuilles:     { actif: 60,  passif: 180 },
     choux:        { actif: 450, passif: 450 },
     fibreux:      { actif: 250, passif: 480 },
-    lentilles:              { actif: 900,  passif: 600 },
+    lentilles:              { actif: 1200,  passif: 800 },
     legumineuses_trempees:  { actif: 1200, passif: 900 },
     surgeles:     { actif: 240, passif: 300 }
 };
